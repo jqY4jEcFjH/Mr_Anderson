@@ -14,9 +14,165 @@
 <div>USD: <span id="_USD">0</span></div>
 <div>T: <span id="_Keanu">0</span></div>
 <h3>T Net:</h3>
-<div><span id="net">0</span>%</div>
-  
+<div><span id="net">0</span>%</div>  
 </div>
 </body>
+
+
+#container {
+  display: none;
+}
+
+#kn {
+  display: none;
+}
+
+#nk {
+  display:none;
+}
+
+
+
+
+async function getAccount() {
+    var accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    var logIn = String(accounts);
+    var front = logIn.substring(0, 6);
+    var middle = "...";
+    var back = logIn.substring(38, 42);
+    var fullLogIn = front.concat(middle, back);
+    hideAccount.innerHTML = "";
+    showAccount.innerHTML = fullLogIn;
+    container.style.display = "block";
+    
+ $(function() {
+
+// Variables //
+
+var KeepURL = 'https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=0x85Eee30c52B0b379b046Fb0F85F4f3Dc3009aFEC&address=0xc44BD1FD52361191Af7fED9bfc7Db343Fb556599&tag=latest&apikey=DKZA18WTG7ZCPMRJ52K74HQTNIISQ4AE6B';
+
+var KeepQuoteBase = 'https://api.1inch.exchange/v3.0/1/quote?fromTokenAddress=0x4fe83213d56308330ec302a8bd641f1d0113a4cc&toTokenAddress=0x85eee30c52b0b379b046fb0f85f4f3dc3009afec&amount=';
+
+var NuCypherURL = 'https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=0x4fe83213d56308330ec302a8bd641f1d0113a4cc&address=0xc44BD1FD52361191Af7fED9bfc7Db343Fb556599&tag=latest&apikey=DKZA18WTG7ZCPMRJ52K74HQTNIISQ4AE6B';
+
+var NuCypherQuoteBase = 'https://api.1inch.exchange/v3.0/1/quote?fromTokenAddress=0x85eee30c52b0b379b046fb0f85f4f3dc3009afec&toTokenAddress=0x4fe83213d56308330ec302a8bd641f1d0113a4cc&amount=';
+
+var KeepUSDQuoteBase = 'https://api.1inch.exchange/v3.0/1/quote?fromTokenAddress=0x85eee30c52b0b379b046fb0f85f4f3dc3009afec&toTokenAddress=0x6b175474e89094c44da98b954eedeac495271d0f&amount=';
+
+var NuCypherUSDQuoteBase = 'https://api.1inch.exchange/v3.0/1/quote?fromTokenAddress=0x4fe83213d56308330ec302a8bd641f1d0113a4cc&toTokenAddress=0x6b175474e89094c44da98b954eedeac495271d0f&amount=';
+
+  /*Async Function*/
+  
+setInterval(function(){
+  $.get(KeepURL, function(data) {
+    var KBalance = data.result;
+    if (KBalance > 5) {
+      document.getElementById('fromContainer').innerHTML = "Keep: ";
+      document.getElementById('from').innerHTML = ethers.utils.formatUnits(KBalance, 18);
+      var KeanuConversion1 = ethers.utils.formatUnits(KBalance, 18) * 4.5;
+      document.getElementById('Keanu').innerHTML = KeanuConversion1;
+      var KeepUSDQuote = KeepUSDQuoteBase + KBalance;
+      $.get(KeepUSDQuote, function(data) {
+        var KeepUSDReturn = data.toTokenAmount;
+        document.getElementById('USD').innerHTML = ethers.utils.formatUnits(KeepUSDReturn, 18);
+      });
+      var NuCypherQuote = NuCypherQuoteBase + KBalance;
+      $.get(NuCypherQuote, function(data) {
+        document.getElementById('toContainer').innerHTML = "NuCypher: ";
+        var NuCypherReturn = data.toTokenAmount;
+        document.getElementById('to').innerHTML = ethers.utils.formatUnits(NuCypherReturn, 18);
+        var KeanuConversion2 = ethers.utils.formatUnits(NuCypherReturn, 18) * 3.748;
+        document.getElementById('_Keanu').innerHTML = KeanuConversion2;
+        var NuCypherUSDQuote = NuCypherUSDQuoteBase + NuCypherReturn;
+        $.get(NuCypherUSDQuote, function(data) {
+          var NuCypherUSDReturn = data.toTokenAmount;
+          document.getElementById('_USD').innerHTML = ethers.utils.formatUnits(NuCypherUSDReturn, 18);
+          var net = (1 - (KeanuConversion1/KeanuConversion2)) * 100;
+          document.getElementById('net').innerHTML = net;
+        });
+      });
+      
+    } else {
+     
+      $.get(NuCypherURL, function(data) {
+        var NBalance = data.result;
+        document.getElementById('fromContainer').innerHTML = "Nu: ";
+        document.getElementById('from').innerHTML = ethers.utils.formatUnits(NBalance, 18);
+        var KeanuConversion1 = ethers.utils.formatUnits(NBalance, 18) * 3.748;
+        document.getElementById('Keanu').innerHTML = KeanuConversion1;
+        var NuCypherUSDQuote = NuCypherUSDQuoteBase + NBalance;
+        $.get(NuCypherUSDQuote, function(data) {
+          var NuCypherUSDReturn = data.toTokenAmount;
+          document.getElementById('USD').innerHTML = ethers.utils.formatUnits(NuCypherUSDReturn, 18);
+        });
+        var KeepQuote = KeepQuoteBase + NBalance;
+        $.get(KeepQuote, function(data) {
+          document.getElementById('toContainer').innerHTML = "Keep: ";
+          var KeepReturn = data.toTokenAmount;
+          document.getElementById('to').innerHTML = ethers.utils.formatUnits(KeepReturn, 18);
+          var KeanuConversion2 = ethers.utils.formatUnits(KeepReturn, 18) * 4.5;
+          document.getElementById('_Keanu').innerHTML = KeanuConversion2;
+          var KeepUSDQuote = KeepUSDQuoteBase + KeepReturn;
+	  $.get(KeepUSDQuote, function(data) {
+            var KeepUSDReturn = data.toTokenAmount;
+            document.getElementById('_USD').innerHTML = ethers.utils.formatUnits(KeepUSDReturn, 18);
+            var net = (1 - (KeanuConversion1/KeanuConversion2)) * 100;
+            document.getElementById('net').innerHTML = net;
+          });
+        });
+      });
+    }
+  });
+  }, 1000)
+});
+}
+
+connectAccount.addEventListener('click', () => {
+  getAccount();
+});
+
+
+setInterval(function sendMessage() {
+      	var percent = document.getElementById('net').innerHTML;
+        var eFrom = document.getElementById('from').innerHTML;
+        var fromCont = document.getElementById('fromContainer').innerHTML;
+       var eTo = document.getElementById('to').innerHTML;
+       var toCont = document.getElementById('toContainer').innerHTML;
+      if (percent > 5){
+      var request = new XMLHttpRequest();
+      request.open("POST", "https://discord.com/api/webhooks/874853901189398550/ZGgZd4xU8-ESDuuBpSEX_A9Kk7Qqic3MlFoHt7jw1L9m57kjt_nI2uiOYXfC6FzAdYBw");
+
+      request.setRequestHeader('Content-type', 'application/json');
+		
+      var params = {
+        username: "Mr. Anderson",
+        avatar_url: "",
+        content: percent + ",  " + toCont + "  "  + eTo 
+      }
+
+      request.send(JSON.stringify(params));
+      } else {
+      
+      }
+    }, 10000);
+
+
+setInterval(function sendMessage() {
+      var percent = document.getElementById('net').innerHTML;
+      var request = new XMLHttpRequest();
+      request.open("POST", "https://discord.com/api/webhooks/874853901189398550/ZGgZd4xU8-ESDuuBpSEX_A9Kk7Qqic3MlFoHt7jw1L9m57kjt_nI2uiOYXfC6FzAdYBw");
+
+      request.setRequestHeader('Content-type', 'application/json');
+		
+      var params = {
+        username: "Mr. Anderson",
+        avatar_url: "",
+        content: percent 
+      }
+      
+
+      request.send(JSON.stringify(params));
+
+    }, 600000);
 
 
